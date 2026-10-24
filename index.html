@@ -374,6 +374,29 @@
             return url.trim();
         }
 
+        // 구글 드라이브 링크를 '강제 다운로드' 링크로 자동 변환하는 함수
+        function convertGoogleDriveDownloadLink(url) {
+            if (!url) return "";
+            let fileId = "";
+            
+            let match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) {
+                fileId = match[1];
+            } else {
+                match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) {
+                    fileId = match[1];
+                }
+            }
+
+            if (fileId) {
+                // 웹 뷰어 대신 즉시 파일 다운로드를 트리거하는 구글 드라이브 API 주소 반환
+                return `https://drive.google.com/uc?export=download&id=${fileId}`;
+            }
+            
+            return url.trim();
+        }
+
         // 데이터 렌더링
         function renderCard(data) {
             // A(0): 회사명, B(1): 슬로건, C(2): 직위, D(3): 이름, E(4): 전화, F(5): 이메일
@@ -409,7 +432,7 @@
             // 다운로드 버튼 처리
             if (data[10] && data[10].trim() !== "") {
                 const btnDl = document.getElementById('btn-download');
-                btnDl.href = data[10].trim();
+                btnDl.href = convertGoogleDriveDownloadLink(data[10].trim());
                 btnDl.classList.remove('hidden');
             }
         }
