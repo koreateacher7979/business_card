@@ -174,11 +174,16 @@
             <img id="el-logo" src="" alt="Company Logo" class="max-h-[45px] w-auto object-contain hidden drop-shadow-sm dark:bg-white/90 dark:p-1.5 dark:rounded-lg transition-colors">
         </div>
 
-        <!-- 슬로건 및 회사명 -->
+        <!-- 슬로건, 회사명 및 프로필/이름 -->
         <div class="text-center mb-4">
             <span id="el-slogan" class="inline-block text-[11px] font-semibold tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full mb-2 border border-primary/20 hidden shadow-sm"></span>
             <h2 id="el-company" class="text-[13px] font-medium text-slate-500 dark:text-slate-400 tracking-wide mb-1 hidden"></h2>
             
+            <!-- 추가된 프로필 사진 영역 -->
+            <div class="flex justify-center mb-1.5">
+                <img id="el-profile" src="" alt="Profile Picture" class="w-[60px] h-[60px] rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-sm hidden bg-slate-100 dark:bg-slate-800 transition-colors">
+            </div>
+
             <div class="flex items-end justify-center gap-1.5 mb-1">
                 <h1 id="el-name" class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight"></h1>
                 <span id="el-title" class="text-sm text-slate-500 dark:text-slate-300 font-medium pb-0.5"></span>
@@ -372,7 +377,7 @@
         // 데이터 렌더링
         function renderCard(data) {
             // A(0): 회사명, B(1): 슬로건, C(2): 직위, D(3): 이름, E(4): 전화, F(5): 이메일
-            // G(6): 블로그, H(7): 홈페이지, I(8): 카카오, J(9): 공지사항, K(10): 명함저장, L(11): 로고
+            // G(6): 블로그, H(7): 홈페이지, I(8): 카카오, J(9): 공지사항, K(10): 명함저장, L(11): 로고, M(12): 프로필 사진
             
             bindDataText('el-company', data[0]);
             bindDataText('el-slogan', data[1]);
@@ -385,6 +390,13 @@
             if (data[11] && data[11].trim() !== "") {
                 logoEl.src = convertGoogleDriveLink(data[11]);
                 logoEl.classList.remove('hidden');
+            }
+
+            // 프로필 이미지 처리 (M열)
+            const profileEl = document.getElementById('el-profile');
+            if (data[12] && data[12].trim() !== "") {
+                profileEl.src = convertGoogleDriveLink(data[12]);
+                profileEl.classList.remove('hidden');
             }
 
             // 연락처 및 링크 처리 (아이콘 텍스트와 실제 데이터 동시 표기)
