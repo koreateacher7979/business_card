@@ -166,16 +166,21 @@
         <p class="text-sm text-slate-500 dark:text-slate-400">구글 스프레드시트의 공유 권한이 '링크가 있는 모든 사용자'로 설정되어 있는지 확인해주세요.</p>
     </div>
 
+    <!-- 토스트 메시지 (갤러리 저장 안내) -->
+    <div id="toast-message" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800/90 dark:bg-slate-200/90 text-white dark:text-slate-900 px-5 py-3 rounded-full shadow-2xl text-[13px] font-bold z-50 transition-all duration-300 opacity-0 pointer-events-none hidden whitespace-nowrap backdrop-blur-md">
+        이미지를 꾹 눌러 '사진 앱에 저장'을 선택해주세요📸
+    </div>
+
     <!-- 메인 디지털 명함 컨테이너 (한 화면에 꽉 차게 여백 및 크기 대폭 축소) -->
-    <main id="vcard-container" class="opacity-0 transition-opacity duration-500 w-full max-w-[380px] max-h-[96dvh] overflow-y-auto hide-scroll glass-card rounded-[24px] p-4 sm:p-5 flex flex-col relative my-auto shadow-2xl">
-        
-        <!-- 최상단 로고 -->
-        <div class="flex justify-center mb-3 min-h-[40px] items-center shrink-0">
-            <img id="el-logo" src="" alt="Company Logo" fetchpriority="high" class="max-h-[45px] w-auto object-contain hidden drop-shadow-sm dark:bg-white/90 dark:p-1.5 dark:rounded-lg transition-colors">
-        </div>
+    <main id="vcard-container" class="opacity-0 transition-opacity duration-500 w-full max-w-[380px] max-h-[96dvh] overflow-y-auto hide-scroll glass-card rounded-[24px] p-4 sm:p-5 flex flex-col relative my-auto shadow-2xl shrink-0">
 
         <!-- 슬로건, 회사명 및 프로필/이름 -->
         <div class="text-center mb-4 shrink-0">
+            <!-- 누락된 로고 영역 추가 -->
+            <div class="flex justify-center mb-3">
+                <img id="el-logo" src="" alt="Company Logo" class="max-h-[40px] w-auto hidden object-contain dark:bg-white/90 dark:rounded-lg dark:p-1.5 transition-colors">
+            </div>
+
             <span id="el-slogan" class="inline-block text-[11px] font-semibold tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full mb-2 border border-primary/20 hidden shadow-sm"></span>
             <h2 id="el-company" class="text-[13px] font-medium text-slate-500 dark:text-slate-400 tracking-wide mb-1 hidden"></h2>
             
@@ -250,7 +255,7 @@
             </a>
 
             <!-- 블로그 -->
-            <a id="btn-blog" href="#" target="_blank" rel="noopener noreferrer" class="glass-button hidden w-full flex items-center justify-between p-2.5 rounded-xl text-slate-800 dark:text-slate-200 hover:border-primary/50">
+            <a id="btn-blog" href="#" target="_blank" rel="noopener noreferrer" class="shrink-0 glass-button hidden w-full flex items-center justify-between p-2.5 rounded-xl text-slate-800 dark:text-slate-200 hover:border-primary/50">
                 <div class="flex items-center gap-2 overflow-hidden">
                     <div class="min-w-[36px] h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shadow-inner">
                         <i class="ph-fill ph-notebook text-xl text-primary"></i>
@@ -264,10 +269,10 @@
             </a>
         </div>
 
-        <!-- 명함 이미지 다운로드 버튼 -->
-        <a id="btn-download" href="#" target="_blank" download class="hidden w-full mt-auto shrink-0 bg-primary hover:bg-primaryLight text-white transition-colors font-bold text-[14px] py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/30">
-            <i class="ph-bold ph-download-simple text-lg"></i>
-            명함 이미지 저장
+        <!-- 명함 이미지 다운로드 버튼 (안내 메시지 팝업 후 열림) -->
+        <a id="btn-download" href="#" class="shrink-0 hidden w-full mt-auto bg-primary hover:bg-primaryLight text-white transition-colors font-bold text-[14px] py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/30">
+            <i class="ph-bold ph-image text-lg"></i>
+            명함 갤러리에 저장하기
         </a>
 
     </main>
@@ -374,8 +379,8 @@
             return url.trim();
         }
 
-        // 구글 드라이브 링크를 '강제 다운로드' 링크로 자동 변환하는 함수
-        function convertGoogleDriveDownloadLink(url) {
+        // 구글 드라이브 링크를 '고해상도 이미지 보기' 링크로 변환하는 함수 (갤러리 저장용)
+        function convertGoogleDriveHighResLink(url) {
             if (!url) return "";
             let fileId = "";
             
@@ -390,11 +395,32 @@
             }
 
             if (fileId) {
-                // 웹 뷰어 대신 즉시 파일 다운로드를 트리거하는 구글 드라이브 API 주소 반환
-                return `https://drive.google.com/uc?export=download&id=${fileId}`;
+                // 원본 비율을 유지하며 고해상도(너비 2000px 기준)로 렌더링되게 하여 화질 저하 방지
+                return `https://drive.google.com/thumbnail?id=${fileId}&sz=w2000`;
             }
             
             return url.trim();
+        }
+
+        // 안내 메시지(토스트) 띄우기 함수
+        function showToast(message) {
+            const toast = document.getElementById('toast-message');
+            toast.innerText = message;
+            toast.classList.remove('hidden');
+            // display: block 적용 후 애니메이션이 동작하도록 약간의 딜레이
+            setTimeout(() => {
+                toast.classList.remove('opacity-0');
+                toast.classList.add('translate-y-[-20px]'); // 살짝 위로 올라오는 애니메이션
+            }, 10);
+            
+            // 3초 후 사라짐
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                toast.classList.remove('translate-y-[-20px]');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 3000);
         }
 
         // 데이터 렌더링
@@ -408,9 +434,9 @@
             bindDataText('el-name', data[3]);
             bindDataText('el-notice', data[9]);
 
-            // 로고 이미지 처리
+            // 로고 이미지 처리 (안전장치 추가)
             const logoEl = document.getElementById('el-logo');
-            if (data[11] && data[11].trim() !== "") {
+            if (logoEl && data[11] && data[11].trim() !== "") {
                 logoEl.src = convertGoogleDriveLink(data[11], 400); // 로고는 400px 크기로 요청
                 logoEl.classList.remove('hidden');
             }
@@ -429,11 +455,22 @@
             bindLinkData('btn-homepage', 'text-homepage', data[7], '');
             bindLinkData('btn-kakao', 'text-kakao', data[8], '');
             
-            // 다운로드 버튼 처리
+            // 갤러리 저장(다운로드) 버튼 처리
             if (data[10] && data[10].trim() !== "") {
                 const btnDl = document.getElementById('btn-download');
-                btnDl.href = convertGoogleDriveDownloadLink(data[10].trim());
+                btnDl.href = convertGoogleDriveHighResLink(data[10].trim());
                 btnDl.classList.remove('hidden');
+                
+                // 클릭 시 바로 다운로드(파일앱)가 되지 않고 안내창과 함께 새 탭에서 열림
+                btnDl.onclick = function(e) {
+                    e.preventDefault(); // 기본 링크 이동 방지
+                    showToast("이미지를 꾹 눌러 '사진 앱에 저장'을 선택해주세요📸");
+                    
+                    // 메시지를 읽을 수 있도록 1.5초 딜레이 후 이미지 오픈
+                    setTimeout(() => {
+                        window.open(this.href, '_blank');
+                    }, 1500);
+                };
             }
         }
 
