@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <!-- 모바일 최적화를 위한 뷰포트 설정 (잘림 방지 및 노치 영역 대응) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>디지털 명함</title>
+    
+    <!-- 연결 속도 향상을 위한 Preconnect (구글 서버 조기 연결) -->
+    <link rel="preconnect" href="https://docs.google.com">
+    <link rel="preconnect" href="https://drive.google.com">
+    
+    <!-- Tailwind CSS (스타일링) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons (미래지향적이고 깔끔한 아이콘) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // 클래스 기반 다크모드 설정
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0055ff', // 선명한 블루 포인트
+                        primaryLight: '#3377ff',
+                        darkbg: '#0B1120', // 깊고 깔끔한 다크 네이비
+                        lightbg: '#f8fafc',
+                    },
+                    fontFamily: {
+                        sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'Helvetica Neue', 'Segoe UI', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* 웹폰트 로드 (프리텐다드) */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
+        body {
+            /* 라이트/다크 모드 기본 배경 트랜지션 */
+            transition: background-color 0.3s ease, color 0.3s ease;
+            margin: 0;
+            -webkit-tap-highlight-color: transparent;
+            /* 모바일 브라우저 UI에 가려지는 현상 방지 (100dvh) 및 잘림 방지 스크롤 허용 */
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        /* 기기 세로 길이가 충분히 길 때만 화면 중앙 정렬 */
+        @media (min-height: 750px) {
+            body { justify-content: center; }
+        }
+
+        /* 다크모드 배경 */
+        .dark body {
+            background-color: #0B1120;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 85, 255, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(51, 119, 255, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #f8fafc;
+        }
+
+        /* 라이트모드 배경 */
+        html:not(.dark) body {
+            background-color: #f1f5f9;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 85, 255, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(0, 85, 255, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #0f172a;
+        }
+
+        /* 글래스모피즘 공통 */
+        .glass-card {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* 다크모드 카드 */
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 라이트모드 카드 */
+        html:not(.dark) .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 1);
+            box-shadow: 0 25px 50px -12px rgba(0, 85, 255, 0.15);
+        }
+
+        .glass-button {
+            transition: all 0.2s ease;
+        }
+        
+        /* 다크모드 버튼 */
+        .dark .glass-button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .dark .glass-button:active {
+            background: rgba(0, 85, 255, 0.2);
+            transform: scale(0.96);
+            border-color: rgba(0, 85, 255, 0.5);
+        }
+
+        /* 라이트모드 버튼 */
+        html:not(.dark) .glass-button {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        html:not(.dark) .glass-button:active {
+            background: rgba(0, 85, 255, 0.1);
+            transform: scale(0.96);
+            border-color: rgba(0, 85, 255, 0.3);
+        }
+
+        /* 로딩 스피너 */
+        .loader {
+            border: 3px solid rgba(128,128,128,0.2);
+            border-top-color: #0055ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* 공지사항 펄스 */
+        .pulse-border {
+            animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(0, 85, 255, 0.2); }
+            50% { border-color: rgba(0, 85, 255, 0.8); }
+        }
+    </style>
+</head>
+<body class="py-10 px-4 sm:p-6 antialiased">
+
+    <!-- 테마 변경 토글 버튼 -->
+    <button id="theme-toggle" class="fixed top-4 right-4 z-40 p-3 rounded-full glass-card hover:scale-110 transition-transform shadow-lg">
+        <i id="theme-icon" class="ph-fill ph-moon text-xl text-slate-800 dark:text-yellow-400"></i>
+    </button>
+
+    <!-- 초기 로딩 화면 -->
+    <div id="loading" class="fixed inset-0 flex flex-col items-center justify-center z-50 bg-slate-50 dark:bg-[#0B1120] transition-colors">
+        <div class="loader mb-4"></div>
+        <p class="text-slate-500 dark:text-slate-400 text-sm tracking-widest font-light">LOADING DATA...</p>
+    </div>
+
+    <!-- 에러 메세지 -->
+    <div id="error-message" class="hidden text-center p-6 glass-card rounded-2xl max-w-sm w-full mx-auto my-auto">
+        <i class="ph ph-warning-circle text-4xl text-red-500 mb-3"></i>
+        <h2 class="text-lg font-bold mb-2">데이터를 불러올 수 없습니다.</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400">구글 스프레드시트의 공유 권한이 '링크가 있는 모든 사용자'로 설정되어 있는지 확인해주세요.</p>
+    </div>
+
+    <!-- 메인 디지털 명함 컨테이너 (opacity 0으로 시작하여 부드럽게 나타남) -->
+    <main id="vcard-container" class="opacity-0 transition-opacity duration-500 w-full max-w-[400px] glass-card rounded-3xl p-6 sm:p-8 flex flex-col relative overflow-hidden my-auto shadow-2xl">
+        
+        <!-- 최상단 로고 -->
+        <div class="flex justify-center mb-6 min-h-[60px] items-center">
+            <img id="el-logo" src="" alt="Company Logo" class="max-h-[60px] w-auto object-contain hidden drop-shadow-sm">
+        </div>
+
+        <!-- 슬로건 및 회사명 -->
+        <div class="text-center mb-8">
+            <span id="el-slogan" class="inline-block text-xs font-semibold tracking-wider text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-4 border border-primary/20 hidden shadow-sm"></span>
+            <h2 id="el-company" class="text-sm font-medium text-slate-500 dark:text-slate-400 tracking-wide mb-2 hidden"></h2>
+            
+            <div class="flex items-end justify-center gap-2 mb-2">
+                <h1 id="el-name" class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"></h1>
+                <span id="el-title" class="text-lg text-slate-500 dark:text-slate-300 font-medium pb-0.5"></span>
+            </div>
+        </div>
+
+        <!-- 공지사항 배너 -->
+        <div id="el-notice-container" class="hidden mb-8 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 pulse-border relative overflow-hidden shadow-sm">
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
+            <div class="flex items-start gap-3 pl-2">
+                <i class="ph-fill ph-bell-ringing text-primary text-xl mt-0.5"></i>
+                <p id="el-notice" class="text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium break-keep"></p>
+            </div>
+        </div>
+
+        <!-- 액션 버튼 그리드 -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <!-- 전화 -->
+            <a id="btn-phone" href="#" class="glass-button hidden flex flex-col items-center justify-center py-4 rounded-2xl text-slate-700 dark:text-slate-300 group">
+                <div class="bg-slate-100 dark:bg-slate-800/80 p-3 rounded-full mb-2 group-hover:bg-primary group-hover:text-white transition-colors shadow-inner">
+                    <i class="ph-fill ph-phone text-xl group-hover:text-white text-primary dark:text-white"></i>
+                </div>
+                <span class="text-[11px] font-bold tracking-wide text-slate-400 dark:text-slate-500 mb-0.5">전화걸기</span>
+                <span id="text-phone" class="text-sm font-bold tracking-tight"></span>
+            </a>
+            <!-- 이메일 -->
+            <a id="btn-email" href="#" class="glass-button hidden flex flex-col items-center justify-center py-4 rounded-2xl text-slate-700 dark:text-slate-300 group">
+                <div class="bg-slate-100 dark:bg-slate-800/80 p-3 rounded-full mb-2 group-hover:bg-primary group-hover:text-white transition-colors shadow-inner">
+                    <i class="ph-fill ph-envelope-simple text-xl group-hover:text-white text-primary dark:text-white"></i>
+                </div>
+                <span class="text-[11px] font-bold tracking-wide text-slate-400 dark:text-slate-500 mb-0.5">이메일</span>
+                <span id="text-email" class="text-xs font-bold tracking-tight px-2 truncate w-full text-center"></span>
+            </a>
+        </div>
+
+        <!-- 추가 링크 버튼 리스트 -->
+        <div class="space-y-3 mb-8">
+            <!-- 카카오톡 -->
+            <a id="btn-kakao" href="#" target="_blank" rel="noopener noreferrer" class="glass-button hidden w-full flex items-center justify-between p-4 rounded-2xl text-slate-800 dark:text-slate-200 hover:border-primary/50">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="min-w-[44px] h-11 rounded-full bg-[#FEE500] flex items-center justify-center text-black shadow-sm">
+                        <i class="ph-fill ph-chat-circle text-2xl"></i>
+                    </div>
+                    <div class="flex flex-col overflow-hidden">
+                        <span class="font-bold text-[15px]">카카오톡 채널</span>
+                        <span id="text-kakao" class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5"></span>
+                    </div>
+                </div>
+                <i class="ph-bold ph-caret-right text-slate-400 ml-2"></i>
+            </a>
+
+            <!-- 홈페이지 -->
+            <a id="btn-homepage" href="#" target="_blank" rel="noopener noreferrer" class="glass-button hidden w-full flex items-center justify-between p-4 rounded-2xl text-slate-800 dark:text-slate-200 hover:border-primary/50">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="min-w-[44px] h-11 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shadow-inner">
+                        <i class="ph-fill ph-globe text-2xl text-primary"></i>
+                    </div>
+                    <div class="flex flex-col overflow-hidden">
+                        <span class="font-bold text-[15px]">홈페이지 방문</span>
+                        <span id="text-homepage" class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5"></span>
+                    </div>
+                </div>
+                <i class="ph-bold ph-caret-right text-slate-400 ml-2"></i>
+            </a>
+
+            <!-- 블로그 -->
+            <a id="btn-blog" href="#" target="_blank" rel="noopener noreferrer" class="glass-button hidden w-full flex items-center justify-between p-4 rounded-2xl text-slate-800 dark:text-slate-200 hover:border-primary/50">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="min-w-[44px] h-11 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shadow-inner">
+                        <i class="ph-fill ph-notebook text-2xl text-primary"></i>
+                    </div>
+                    <div class="flex flex-col overflow-hidden">
+                        <span class="font-bold text-[15px]">블로그 보기</span>
+                        <span id="text-blog" class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5"></span>
+                    </div>
+                </div>
+                <i class="ph-bold ph-caret-right text-slate-400 ml-2"></i>
+            </a>
+        </div>
+
+        <!-- 명함 이미지 다운로드 버튼 -->
+        <a id="btn-download" href="#" target="_blank" download class="hidden w-full mt-auto bg-primary hover:bg-primaryLight text-white transition-colors font-bold text-[15px] py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/30">
+            <i class="ph-bold ph-download-simple text-xl"></i>
+            명함 이미지 저장
+        </a>
+
+    </main>
+
+    <script>
+        // ================= 다크모드 / 라이트모드 토글 로직 =================
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        
+        // 시스템 설정이나 로컬스토리지 확인하여 초기 테마 세팅
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            themeIcon.classList.replace('ph-moon', 'ph-sun');
+        } else {
+            document.documentElement.classList.remove('dark');
+            themeIcon.classList.replace('ph-sun', 'ph-moon');
+        }
+
+        // 토글 버튼 클릭 이벤트
+        themeToggleBtn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            if (document.documentElement.classList.contains('dark')) {
+                localStorage.theme = 'dark';
+                themeIcon.classList.replace('ph-moon', 'ph-sun');
+            } else {
+                localStorage.theme = 'light';
+                themeIcon.classList.replace('ph-sun', 'ph-moon');
+            }
+        });
+
+
+        // ================= 데이터 연동 로직 =================
+        const SHEET_ID = '17Vp_ZG9o3D08QYYJq3cpOQAeQo6vAfL1v86uLQtc82Q'; 
+        const SHEET_NAME = encodeURIComponent('데이터');
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
+
+        // 간단한 CSV 파서
+        function parseCSV(str) {
+            const arr = [];
+            let quote = false;
+            for (let row = 0, col = 0, c = 0; c < str.length; c++) {
+                let cc = str[c], nc = str[c+1];
+                arr[row] = arr[row] || [];
+                arr[row][col] = arr[row][col] || '';
+                if (cc == '"' && quote && nc == '"') { arr[row][col] += cc; ++c; continue; }
+                if (cc == '"') { quote = !quote; continue; }
+                if (cc == ',' && !quote) { ++col; continue; }
+                if (cc == '\r' && nc == '\n' && !quote) { ++row; col = 0; ++c; continue; }
+                if (cc == '\n' && !quote) { ++row; col = 0; continue; }
+                if (cc == '\r' && !quote) { ++row; col = 0; continue; }
+                arr[row][col] += cc;
+            }
+            return arr;
+        }
+
+        // 텍스트 데이터를 바인딩하는 함수
+        function bindDataText(elementId, value) {
+            const el = document.getElementById(elementId);
+            if (el && value && value.trim() !== "") {
+                el.innerText = value.trim();
+                el.classList.remove('hidden');
+                
+                if (elementId === 'el-notice') {
+                    document.getElementById('el-notice-container').classList.remove('hidden');
+                }
+            }
+        }
+
+        // 링크 및 표시 텍스트를 함께 바인딩하는 함수
+        function bindLinkData(btnId, textId, value, prefix = "") {
+            const btn = document.getElementById(btnId);
+            const textEl = document.getElementById(textId);
+            if (btn && value && value.trim() !== "") {
+                btn.href = prefix + value.trim();
+                btn.classList.remove('hidden');
+                if (textEl) {
+                    textEl.innerText = value.trim();
+                }
+            }
+        }
+
+        // 구글 드라이브 뷰어 링크를 직접 이미지 링크로 변환 (강화된 버전)
+        function convertGoogleDriveLink(url) {
+            if (!url) return "";
+            let fileId = "";
+            
+            // 1. /file/d/[ID]/view 형태에서 ID 추출
+            let match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) {
+                fileId = match[1];
+            } else {
+                // 2. ?id=[ID] 형태에서 ID 추출
+                match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) {
+                    fileId = match[1];
+                }
+            }
+
+            if (fileId) {
+                // 구글 드라이브 보안 정책을 우회하여 이미지를 렌더링하는 가장 안정적인 방법 (썸네일 API 사용)
+                return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
+            }
+            
+            return url.trim();
+        }
+
+        // 데이터 렌더링
+        function renderCard(data) {
+            // A(0): 회사명, B(1): 슬로건, C(2): 직위, D(3): 이름, E(4): 전화, F(5): 이메일
+            // G(6): 블로그, H(7): 홈페이지, I(8): 카카오, J(9): 공지사항, K(10): 명함저장, L(11): 로고
+            
+            bindDataText('el-company', data[0]);
+            bindDataText('el-slogan', data[1]);
+            bindDataText('el-title', data[2]);
+            bindDataText('el-name', data[3]);
+            bindDataText('el-notice', data[9]);
+
+            // 로고 이미지 처리
+            const logoEl = document.getElementById('el-logo');
+            if (data[11] && data[11].trim() !== "") {
+                logoEl.src = convertGoogleDriveLink(data[11]);
+                logoEl.classList.remove('hidden');
+            }
+
+            // 연락처 및 링크 처리 (아이콘 텍스트와 실제 데이터 동시 표기)
+            bindLinkData('btn-phone', 'text-phone', data[4], 'tel:');
+            bindLinkData('btn-email', 'text-email', data[5], 'mailto:');
+            bindLinkData('btn-blog', 'text-blog', data[6], '');
+            bindLinkData('btn-homepage', 'text-homepage', data[7], '');
+            bindLinkData('btn-kakao', 'text-kakao', data[8], '');
+            
+            // 다운로드 버튼 처리
+            if (data[10] && data[10].trim() !== "") {
+                const btnDl = document.getElementById('btn-download');
+                btnDl.href = data[10].trim();
+                btnDl.classList.remove('hidden');
+            }
+        }
+
+        // 카드를 화면에 표시하는 함수
+        function showCard() {
+            document.getElementById('loading').style.display = 'none';
+            const container = document.getElementById('vcard-container');
+            container.classList.remove('hidden');
+            // 약간의 딜레이 후 투명도 조절로 부드러운 전환 효과 (페이드인)
+            setTimeout(() => {
+                container.classList.remove('opacity-0');
+            }, 50);
+        }
+
+        // 데이터 페칭 (캐싱 적용으로 접속 즉시 렌더링 구현)
+        async function fetchSheetData() {
+            const CACHE_KEY = 'vcard_data_cache';
+            
+            // 1. 로컬 스토리지에 저장된 캐시 데이터가 있다면 '즉시' 화면에 렌더링 (NFC 스캔 시 딜레이 제로)
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            if (cachedData) {
+                try {
+                    renderCard(JSON.parse(cachedData));
+                    showCard(); // 즉시 로딩 화면을 없애고 명함 출력
+                } catch(e) { console.log("Cache error", e); }
+            }
+
+            // 2. 백그라운드에서 최신 데이터를 구글 시트에서 가져옴
+            try {
+                const response = await fetch(CSV_URL);
+                if (!response.ok) throw new Error("Network response was not ok");
+                
+                const csvText = await response.text();
+                const rows = parseCSV(csvText);
+                
+                if (rows.length > 1 && rows[1].length > 0) {
+                    const freshData = rows[1];
+                    
+                    // 데이터가 변경되었거나 기존에 캐시가 없었을 경우 화면 및 캐시 업데이트
+                    if (!cachedData || JSON.stringify(freshData) !== cachedData) {
+                        renderCard(freshData);
+                        localStorage.setItem(CACHE_KEY, JSON.stringify(freshData));
+                    }
+                    
+                    // 만약 첫 접속(캐시 없음)이었다면 데이터를 불러온 후 화면을 보여줌
+                    if (!cachedData) {
+                        showCard();
+                    }
+                } else {
+                    throw new Error("No data found in row 2");
+                }
+            } catch (error) {
+                console.error("Failed to fetch data: ", error);
+                if (!cachedData) {
+                    // 캐시도 없고 가져오기도 실패한 경우 에러 표시
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error-message').classList.remove('hidden');
+                }
+            }
+        }
+
+        // 스크립트 실행
+        window.addEventListener('DOMContentLoaded', fetchSheetData);
+
+    </script>
+</body>
+</html>
