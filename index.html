@@ -170,18 +170,18 @@
     <main id="vcard-container" class="opacity-0 transition-opacity duration-500 w-full max-w-[380px] max-h-[96dvh] overflow-y-auto hide-scroll glass-card rounded-[24px] p-4 sm:p-5 flex flex-col relative my-auto shadow-2xl">
         
         <!-- 최상단 로고 -->
-        <div class="flex justify-center mb-3 min-h-[40px] items-center">
-            <img id="el-logo" src="" alt="Company Logo" class="max-h-[45px] w-auto object-contain hidden drop-shadow-sm dark:bg-white/90 dark:p-1.5 dark:rounded-lg transition-colors">
+        <div class="flex justify-center mb-3 min-h-[40px] items-center shrink-0">
+            <img id="el-logo" src="" alt="Company Logo" fetchpriority="high" class="max-h-[45px] w-auto object-contain hidden drop-shadow-sm dark:bg-white/90 dark:p-1.5 dark:rounded-lg transition-colors">
         </div>
 
         <!-- 슬로건, 회사명 및 프로필/이름 -->
-        <div class="text-center mb-4">
+        <div class="text-center mb-4 shrink-0">
             <span id="el-slogan" class="inline-block text-[11px] font-semibold tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full mb-2 border border-primary/20 hidden shadow-sm"></span>
             <h2 id="el-company" class="text-[13px] font-medium text-slate-500 dark:text-slate-400 tracking-wide mb-1 hidden"></h2>
             
             <!-- 추가된 프로필 사진 영역 -->
             <div class="flex justify-center mb-1.5">
-                <img id="el-profile" src="" alt="Profile Picture" class="w-[60px] h-[60px] rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-sm hidden bg-slate-100 dark:bg-slate-800 transition-colors">
+                <img id="el-profile" src="" alt="Profile Picture" fetchpriority="high" class="w-[60px] h-[60px] rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-sm hidden bg-slate-100 dark:bg-slate-800 transition-colors">
             </div>
 
             <div class="flex items-end justify-center gap-1.5 mb-1">
@@ -191,16 +191,16 @@
         </div>
 
         <!-- 공지사항 배너 -->
-        <div id="el-notice-container" class="hidden mb-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 pulse-border relative overflow-hidden shadow-sm">
+        <div id="el-notice-container" class="hidden mb-4 shrink-0 w-full bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 pulse-border relative overflow-hidden shadow-sm">
             <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
             <div class="flex items-start gap-2 pl-2">
-                <i class="ph-fill ph-bell-ringing text-primary text-lg mt-0.5"></i>
+                <i class="ph-fill ph-bell-ringing text-primary text-lg mt-0.5 shrink-0"></i>
                 <p id="el-notice" class="text-[12px] text-slate-700 dark:text-slate-200 leading-relaxed font-medium break-keep"></p>
             </div>
         </div>
 
         <!-- 액션 버튼 그리드 -->
-        <div class="grid grid-cols-2 gap-2 mb-4">
+        <div class="grid grid-cols-2 gap-2 mb-4 shrink-0 w-full">
             <!-- 전화 -->
             <a id="btn-phone" href="#" class="glass-button hidden flex flex-col items-center justify-center py-2.5 rounded-[16px] text-slate-700 dark:text-slate-300 group">
                 <div class="bg-slate-100 dark:bg-slate-800/80 p-2 rounded-full mb-1 group-hover:bg-primary group-hover:text-white transition-colors shadow-inner">
@@ -220,7 +220,7 @@
         </div>
 
         <!-- 추가 링크 버튼 리스트 -->
-        <div class="space-y-2 mb-4">
+        <div class="space-y-2 mb-4 shrink-0 w-full">
             <!-- 카카오톡 -->
             <a id="btn-kakao" href="#" target="_blank" rel="noopener noreferrer" class="glass-button hidden w-full flex items-center justify-between p-2.5 rounded-xl text-slate-800 dark:text-slate-200 hover:border-primary/50">
                 <div class="flex items-center gap-2 overflow-hidden">
@@ -265,7 +265,7 @@
         </div>
 
         <!-- 명함 이미지 다운로드 버튼 -->
-        <a id="btn-download" href="#" target="_blank" download class="hidden w-full mt-auto bg-primary hover:bg-primaryLight text-white transition-colors font-bold text-[14px] py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/30">
+        <a id="btn-download" href="#" target="_blank" download class="hidden w-full mt-auto shrink-0 bg-primary hover:bg-primaryLight text-white transition-colors font-bold text-[14px] py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/30">
             <i class="ph-bold ph-download-simple text-lg"></i>
             명함 이미지 저장
         </a>
@@ -349,8 +349,8 @@
             }
         }
 
-        // 구글 드라이브 뷰어 링크를 직접 이미지 링크로 변환 (강화된 버전)
-        function convertGoogleDriveLink(url) {
+        // 구글 드라이브 뷰어 링크를 직접 이미지 링크로 변환 (해상도 최적화 적용)
+        function convertGoogleDriveLink(url, size = 800) {
             if (!url) return "";
             let fileId = "";
             
@@ -367,8 +367,8 @@
             }
 
             if (fileId) {
-                // 구글 드라이브 보안 정책을 우회하여 이미지를 렌더링하는 가장 안정적인 방법 (썸네일 API 사용)
-                return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
+                // 파라미터로 받은 size(픽셀)에 맞춰 썸네일을 요청하여 다운로드 용량을 극적으로 줄임
+                return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${size}`;
             }
             
             return url.trim();
@@ -388,14 +388,14 @@
             // 로고 이미지 처리
             const logoEl = document.getElementById('el-logo');
             if (data[11] && data[11].trim() !== "") {
-                logoEl.src = convertGoogleDriveLink(data[11]);
+                logoEl.src = convertGoogleDriveLink(data[11], 400); // 로고는 400px 크기로 요청
                 logoEl.classList.remove('hidden');
             }
 
             // 프로필 이미지 처리 (M열)
             const profileEl = document.getElementById('el-profile');
             if (data[12] && data[12].trim() !== "") {
-                profileEl.src = convertGoogleDriveLink(data[12]);
+                profileEl.src = convertGoogleDriveLink(data[12], 150); // 프로필은 150px의 초소형 크기로 요청하여 즉시 렌더링
                 profileEl.classList.remove('hidden');
             }
 
